@@ -1,23 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_strlen.c                                        :+:      :+:    :+:   */
+/*   ft_printf.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: yoraji <yoraji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/22 09:30:00 by yoraji            #+#    #+#             */
-/*   Updated: 2025/03/16 10:02:56 by yoraji           ###   ########.fr       */
+/*   Created: 2024/11/19 16:31:13 by yoraji            #+#    #+#             */
+/*   Updated: 2024/11/19 16:31:14 by yoraji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../so_long.h"
+#ifndef FT_PRINTF_H
+# define FT_PRINTF_H
 
-size_t	ft_strlen(const char *str)
-{
-	size_t	count;
+# include <stdarg.h>
+# include <stdlib.h>
+# include <unistd.h>
 
-	count = 0;
-	while (str[count])
-		count++;
-	return (count);
-}
+int	ft_printf(const char *format, ...);
+int	ft_putstr(char *str);
+int	ft_putchar(char c);
+int	ft_hexdecimal(size_t num, int format, char *base, char *BASE);
+int	ft_putnbr(int num);
+int	ft_point(void *ptr, char *base);
+int	ft_unsigned(unsigned int num);
+
+#endif

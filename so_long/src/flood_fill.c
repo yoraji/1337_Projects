@@ -3,51 +3,94 @@
 /*                                                        :::      ::::::::   */
 /*   flood_fill.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: yoraji <yoraji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:00:48 by marvin            #+#    #+#             */
-/*   Updated: 2025/02/28 16:00:48 by marvin           ###   ########.fr       */
+/*   Updated: 2025/03/17 03:37:05 by yoraji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../so_long.h"
 
-void	flood_fill(t_map *map, int x, int y)
+int	key_hook(int keycode, t_game *game)
 {
-	if (x < 0 || x >= map->width || y < 0
-		|| y >= map->height || map->map[y][x] == '1' || map->map[y][x] == 'F')
-		return ;
-	map->map[y][x] = 'F';
-	flood_fill(map, x + 1, y);
-	flood_fill(map, x - 1, y);
-	flood_fill(map, x, y + 1);
-	flood_fill(map, x, y - 1);
-}
+	int	new_x;
+	int	new_y;
 
-void print_map(t_map *map) {
-    if (!map || !map->map) {
-        printf("Map is not initialized\n");
-        return;
-    }
-
-    for (int y = 0; y < map->height; y++) {
-        if (map->map[y]) {
-            printf("%s\n", map->map[y]);
-        } else {
-            printf("Row %d is not initialized\n", y);
-        }
-    }
-}
-
-int count_exits(t_game *game) {
-	int count = 0;
-	for (int y = 0; y < game->map.height; y++)
+	new_x = game->vars.player_x;
+	new_y = game->vars.player_y;
+	if (keycode == 'w' || keycode == KEY_UP)
+		new_y--;
+	else if (keycode == 's' || keycode == KEY_DOWN)
+		new_y++;
+	else if (keycode == 'a' || keycode == KEY_LEFT)
+		new_x--;
+	else if (keycode == 'd' || keycode == KEY_RIGHT)
+		new_x++;
+	else if (keycode == KEY_ESC)
+		exit_game(game, &game->map);
+	if (game->map.map[new_y][new_x] != '1')
 	{
-		for (int x = 0; x < game->map.width; x++)
+		update_player_position(game, new_x, new_y, keycode);
+		render_map(game, &game->map);
+	}
+	return (0);
+}
+
+int	count_exits(t_game *game)
+{
+	int	count;
+	int	y;
+	int	x;
+
+	y = 0;
+	count = 0;
+	while (y < game->map.height)
+	{
+		x = 0;
+		while (x < game->map.width - 1)
 		{
 			if (game->map.map[y][x] == 'E')
 				count++;
+			x++;
 		}
+		y++;
 	}
-	return count;
+	return (count);
+}
+
+char	*find_starting_position(t_map *map)
+{
+	int	x;
+	int	y;
+
+	y = 0;
+	while (y < map->height)
+	{
+		if (map->map[y] == NULL)
+			continue ;
+		x = 0;
+		while (x < map->width)
+		{
+			if (map->map[y][x] == 'P')
+			{
+				map->player_x = x;
+				map->player_y = y;
+				return (&map->map[y][x]);
+			}
+			x++;
+		}
+		y++;
+	}
+	return (NULL);
+}
+
+void	free_vars(t_vars *vars)
+{
+	if (vars != NULL)
+	{
+		vars->player_x = 0;
+		vars->player_y = 0;
+		vars->moves = 0;
+	}
 }

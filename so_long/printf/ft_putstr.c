@@ -1,23 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_strlen.c                                        :+:      :+:    :+:   */
+/*   ft_putstr.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: yoraji <yoraji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/22 09:30:00 by yoraji            #+#    #+#             */
-/*   Updated: 2025/03/16 10:02:56 by yoraji           ###   ########.fr       */
+/*   Created: 2024/11/19 16:27:04 by yoraji            #+#    #+#             */
+/*   Updated: 2024/11/19 16:43:28 by yoraji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../so_long.h"
+#include "ft_printf.h"
 
-size_t	ft_strlen(const char *str)
+int	ft_putstr(char *c)
 {
-	size_t	count;
+	int	i;
 
-	count = 0;
-	while (str[count])
-		count++;
-	return (count);
+	if (!c)
+		return (ft_putstr("(null)"));
+	i = 0;
+	while (c[i])
+	{
+		ft_putchar(c[i]);
+		i++;
+	}
+	return (i);
 }

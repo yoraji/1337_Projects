@@ -24,7 +24,7 @@ void	left(t_game *game)
 	}
 }
 
-void	right(t_game *game) 
+void	right(t_game *game)
 {
 	int	new_x;
 

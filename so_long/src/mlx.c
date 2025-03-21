@@ -1,30 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   mlx.c                                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: yoraji <yoraji@student.1337.ma>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/03/06 00:28:09 by yoraji            #+#    #+#             */
+/*   Updated: 2025/03/17 06:57:18 by yoraji           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../so_long.h"
 
-void	setup_hooks(t_game *game)
-{
-	mlx_key_hook(game->win, key_hook, game);
-	mlx_loop(game->mlx);
-}
-
-int strlen_line(char *line) {
-    int i = 0;
-    while (line[i] ) {
-		i++;
-    }
-    return i;
-}
-int is_map_rectangle(t_game *game) {
-    int width = game->map.width;
-    for (int y = 0; y < game->map.height; y++) {
-		printf("%d\n", strlen_line(game->map.map[y]));
-        if (strlen_line(game->map.map[y]) != width && y !=  game->map.height - 1 ) { // you must handle the last line 
-            return 0;
-        }
-    }
-    return 1;
-}
-
-int	is_one_player(t_map *map)
+static int	is_one_player(t_map *map)
 {
 	int	x;
 	int	y;
@@ -35,7 +23,7 @@ int	is_one_player(t_map *map)
 	while (y < map->height)
 	{
 		x = 0;
-		while (x < map->width)
+		while (x < map->width - 1)
 		{
 			if (map->map[y][x] == 'P')
 				count++;
@@ -47,54 +35,86 @@ int	is_one_player(t_map *map)
 		return (0);
 	return (1);
 }
-int is_surrended_by_wall(t_game *game)
-{
-	int x;
-	int y;
 
+static void	free_s(char **s, int height)
+{
+	int	i;
+
+	if (!s)
+		return ;
+	i = 0;
+	while (i < height)
+	{
+		if (s[i])
+			free(s[i]);
+		i++;
+	}
+	free(s);
+	s = NULL;
+}
+
+static char	**copy_map(t_game *game)
+{
+	char	**tmp;
+	int		y;
+
+	tmp = malloc(sizeof(char *) * game->map.height);
+	if (!tmp)
+		return (NULL);
+	y = 0;
+	while (y < game->map.height)
+	{
+		tmp[y] = malloc(game->map.width);
+		if (!tmp[y])
+			return (free_s(tmp, y), NULL);
+		ft_memcpy(tmp[y], game->map.map[y], game->map.width - 1);
+		y++;
+	}
+	return (tmp);
+}
+
+static int	cheack_reached_col(t_game *game)
+{
+	char	**tmp;
+	int		x;
+	int		y;
+
+	tmp = copy_map(game);
+	if (!tmp)
+		return (0);
+	flood_fill(tmp, game->map.player_y, game->map.player_x);
 	y = 0;
 	while (y < game->map.height)
 	{
 		x = 0;
-		while (x < game->map.width)
+		while (x < game->map.width - 1)
 		{
-			if (y == 0 || y == game->map.height - 1 || x == 0 || x == game->map.width - 1)
+			if (tmp[y][x] == 'C')
 			{
-				if (game->map.map[y][x] != '1')
-					return (0);
+				free_s(tmp, game->map.height);
+				return (0);
 			}
 			x++;
 		}
 		y++;
 	}
-	return (1);
+	return (free_s(tmp, game->map.height), 1);
 }
 
-int check_map(t_game *game, t_map *map) {
-    printf("Player position: (%d, %d)\n", map->player_x, map->player_y);
-    game->map.height = map->height;
-    game->map.width = map->width ;
-    printf("Map dimensions: width=%d, height=%d\n", game->map.width, game->map.height);
-	if(is_surrended_by_wall(game) == 1) {
-		printf("Invalid wall %d \n", is_surrended_by_wall(game));
+int	check_map(t_game *game, t_map *map)
+{
+	if (empty_line(game) == 0)
 		return (0);
-	}
-	if(count_collectibles__(game) <= 1) {
-		printf("Invalid collectibles %d \n", count_collectibles__(game));
+	if (is_surrended_by_wall(game) == 1 || count_collectibles_game(game) < 1)
 		return (0);
-	}
-    if (count_exits(game) != 1) {
-        print_map(map);
-        printf("Invalid exits %d \n", count_exits(game));
-        return (0);
-    }
-    if (is_map_rectangle(game) == 0) {
-        printf("Invalid rectangular %d \n", is_map_rectangle(game));
-        return (0);
-    }
-    if (is_one_player(map) != 1) {
-        printf("Invalid player\n");
-        return (0);
-    }
-    return (1);
+	if (count_exits(game) != 1)
+		return (0);
+	if (is_map_rectangle(game) == 0)
+		return (0);
+	if (is_one_player(map) != 1 || cheack_elements(game) == 0)
+		return (0);
+	find_player_position(map, &game->vars);
+	if (!cheack_reached_col(game))
+		return (0);
+	return (1);
 }

@@ -3,125 +3,94 @@
 /*                                                        :::      ::::::::   */
 /*   handling_map.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: yoraji <yoraji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:30:25 by marvin            #+#    #+#             */
-/*   Updated: 2025/02/28 16:30:25 by marvin           ###   ########.fr       */
+/*   Updated: 2025/03/17 08:52:30 by yoraji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../so_long.h"
 
-int read_map(char *filename, t_map *map ) {
-	int fd;
-	char *line;
-	int i = 0;
+int	get_map_dimensions(char *filename, t_map *map)
+{
+	char	*line;
+	int		fd;
 
-	printf("Reading map\n");
 	fd = open(filename, O_RDONLY);
-	if (fd < 0) {
-		fprintf(stderr, "Failed to open file\n");
-		return 0;
-	}
-
-	map->height = 0;
-	map->width = 0;
-
-	while ((line = get_next_line(fd)) != NULL)
+	if (fd < 0)
+		return (0);
+	line = get_next_line(fd);
+	if (!line)
+		return (close(fd), 0);
+	map->width = ft_strlen(line);
+	while (line)
 	{
-		printf("Read line: %s", line);
-		if (map->width == 0)
-			map->width = strlen(line);
 		map->height++;
 		free(line);
+		line = get_next_line(fd);
 	}
 	close(fd);
-	printf("Map dimensions: width=%d, height=%d\n", map->width, map->height);
-	map->map = malloc(map->height * sizeof(char *));
+	return (1);
+}
+
+void	free_map_i(t_map *map, int last)
+{
+	int	i;
+
+	if (!map || !map->map)
+		return ;
+	i = 0;
+	while (i < last)
+	{
+		if (map->map[i])
+		{
+			free(map->map[i]);
+		}
+		i++;
+	}
+	free(map->map);
+}
+
+int	ft_copy_map(char *filename, t_map *map)
+{
+	int		fd;
+	int		i;
+	char	*line;
+
+	i = 0;
 	fd = open(filename, O_RDONLY);
-	if (fd < 0) {
-		free(map->map);
-		return 0;
-	}
-	while ((line = get_next_line(fd)) != NULL) {
-		map->map[i] = malloc(map->width + 1);
-		if (!map->map[i]) {
-			free_map(map);
-			free(line);
-			close(fd);
-			return 0;
-		}
-		strncpy(map->map[i], line, map->width);
-		map->map[i][map->width] = '\0';
-		free(line);
-		i++;
-	}
-	close(fd);
-	return 1;
-}
-//???
-// void	calculate_map_dimensions(const char *filename, int *width, int *height) {
-// 	FILE *file = fopen(filename, "r");
-// 	if (!file) {
-// 		perror("Error opening file");
-// 		return ;
-// 	}
-// 	char *line = NULL;
-// 	size_t len = 0;
-// 	ssize_t read;
-// 	*width = 0;
-// 	*height = 0;
-// 	while ((read = getline(&line, &len, file)) != -1) {
-// 		if (read > *width)
-// 			*width = read;
-// 		(*height)++;
-// 	}
-// 	free(line);
-// 	fclose(file);
-// }
-
-char	*find_starting_position(t_map *map)
-{
-	for (int y = 0; y < map->height; y++)
-	{
-		if (map->map[y] == NULL)
-			continue;
-		for (int x = 0; x < map->width; x++)
-		{
-			if (map->map[y][x] == 'P')
-			{
-				map->player_x = x;
-				map->player_y = y;
-				return (&map->map[y][x]);
-			}
-		}
-	}
-	return (NULL);
-}
-
-void parse_map(t_map *map, const char *file)
-{
-	int fd;
-	char *line;
-	int i = 0;
-
-	fd = open(file, O_RDONLY);
 	if (fd < 0)
-		exit(1);
-	map->map = malloc(sizeof(char *) * map->height);
-	while ((line = get_next_line(fd)) != NULL)
+		return (0);
+	line = get_next_line(fd);
+	if (!line)
+		return (free(line), free_map(map), free(filename), 0);
+	while (line != NULL)
 	{
-		map->map[i] = malloc(map->width + 1);
-		if (map->map[i] == NULL)
-		{
-			free(line);
-			close(fd);
-			exit(1);
-		}
-		strcpy(map->map[i], line);
+		map->map[i] = malloc(strlen_line(line) + 1);
+		if (!(map->map[i]))
+			return (free_map_i(map, i), free(line), 0);
+		ft_strncpy(map->map[i], line, strlen_line(line));
+		map->map[i][strlen_line(line)] = '\0';
 		free(line);
+		line = get_next_line(fd);
 		i++;
 	}
-
 	close(fd);
+	return (1);
+}
+
+int	read_map(char *filename, t_map *map)
+{
+	int	i;
+
+	i = 0;
+	if (!get_map_dimensions(filename, map))
+		return (0);
+	map->map = malloc(map->height * sizeof(char *));
+	if (!map->map)
+		return (0);
+	if (!ft_copy_map(filename, map))
+		return (free_map(map), 0);
+	return (1);
 }
